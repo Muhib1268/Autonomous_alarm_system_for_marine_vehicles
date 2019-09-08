@@ -1,0 +1,344 @@
+#include <mega32.h>
+
+// Alphanumeric LCD functions
+#include <alcd.h>
+#include <delay.h>
+#include <string.h>
+#include <stdlib.h>
+    
+#define bt_vcc PORTB.5
+#define bt_en PORTB.6
+#define bt_state PORTB.7
+// Declare your global variables here
+
+unsigned char at_rmaad[8], at_bind_A[26], at_bind_B[26], at_init[11], at_inq[10], at_link_A[26], at_link_B[26], dicson[7];
+unsigned char recData[5];        //To declare 8bit character variable
+char i=0, b=0;    //To declare single bit
+
+// Standard Input/Output functions
+#include <stdio.h>
+
+
+void usart_transmit(unsigned char ch )
+{
+    while ( !( UCSRA & (1<<UDRE)) );
+    UDR = ch;
+}
+
+interrupt [USART_RXC] void myInterrupt(void)
+{
+    recData[i] = getchar();     //Get Character from UDR
+    
+    if(recData[i]=='M')
+    {
+        recData[i]=0x00;        
+        b=1;
+    }   
+    
+    i++;
+    if(i>=5)
+    {
+        i=0;
+    }
+}
+
+
+void pair_with_bluetooth_A(void)
+{
+    int j=0;
+    //UCSRB=(0<<RXCIE)|(0<<RXEN);  
+    
+    PORTB.6=0;
+    PORTB.5=0;
+    delay_ms(200);
+
+    PORTB.6=1;
+    delay_ms(100);   
+    PORTB.5=1;
+    
+    for (j=0; j<strlen(at_rmaad); j++)
+    {
+        usart_transmit(at_rmaad[j]); 
+    } 
+    delay_ms(1000); 
+                                    
+    for (j=0; j<strlen(at_bind_A); j++)
+    {
+        usart_transmit(at_bind_A[j]); 
+    }
+    delay_ms(1000); 
+    
+    PORTB.6=0;  
+    PORTB.5=0;   
+    
+    delay_ms(200);  
+    PORTB.5=1;
+}
+
+void pair_with_bluetooth_B(void)
+{
+    int j=0; 
+
+    PORTB.6=0;
+    PORTB.5=0;
+    delay_ms(200);
+
+    PORTB.6=1;
+    delay_ms(100);   
+    PORTB.5=1;
+    
+       
+    for (j=0; j<strlen(at_rmaad); j++)
+    {
+        usart_transmit(at_rmaad[j]); 
+    } 
+    delay_ms(1000); 
+ 
+                                   
+    for (j=0; j<strlen(at_bind_B); j++)
+    {
+        usart_transmit(at_bind_B[j]); 
+    }
+    delay_ms(1000);
+            
+    PORTB.6=0;  
+    PORTB.5=0;   
+
+    delay_ms(200);  
+    PORTB.5=1;
+}
+
+void main(void)
+{
+// Declare your local variables here
+char disp1[16], disp2[16]; 
+unsigned char loadA[5], loadB[5];
+float A=0, B=0, Tot=0;
+float x=0, y=0, z=0;
+int clk=0;
+char coordX[5], coordY[5], coordZ[5], totalLoad[5];
+// Input/Output Ports initialization
+DDRA=0xFF;
+
+// Port B initialization
+// Function: Bit7=In Bit6=Out Bit5=Out Bit4=In Bit3=In Bit2=In Bit1=In Bit0=In 
+DDRB=(0<<DDB7) | (1<<DDB6) | (1<<DDB5) | (0<<DDB4) | (0<<DDB3) | (0<<DDB2) | (0<<DDB1) | (0<<DDB0);
+// State: Bit7=T Bit6=T Bit5=T Bit4=T Bit3=T Bit2=T Bit1=T Bit0=T 
+PORTB=(0<<PORTB7) | (0<<PORTB6) | (0<<PORTB5) | (0<<PORTB4) | (0<<PORTB3) | (0<<PORTB2) | (0<<PORTB1) | (0<<PORTB0);
+
+
+MCUCR=(0<<ISC11) | (0<<ISC10) | (0<<ISC01) | (0<<ISC00);
+MCUCSR=0xFF;  //(0<<ISC2);
+
+// USART initialization
+// Communication Parameters: 8 Data, 1 Stop, No Parity
+// USART Receiver: On
+// USART Transmitter: Off
+// USART Mode: Asynchronous
+// USART Baud Rate: 9600
+UCSRA=(0<<RXC) | (0<<TXC) | (0<<UDRE) | (0<<FE) | (0<<DOR) | (0<<UPE) | (0<<U2X) | (0<<MPCM);
+UCSRB=(1<<RXCIE) | (0<<TXCIE) | (0<<UDRIE) | (1<<RXEN) | (1<<TXEN) | (0<<UCSZ2) | (0<<RXB8) | (0<<TXB8);
+UCSRC=(1<<URSEL) | (0<<UMSEL) | (0<<UPM1) | (0<<UPM0) | (0<<USBS) | (1<<UCSZ1) | (1<<UCSZ0) | (0<<UCPOL);
+UBRRH=0x00;
+UBRRL=0x19;
+
+
+
+#asm ("sei");
+// Alphanumeric LCD initialization
+// Connections are specified in the
+// Project|Configure|C Compiler|Libraries|Alphanumeric LCD menu:
+// RS - PORTA Bit 0
+// RD - PORTA Bit 1
+// EN - PORTA Bit 2
+// D4 - PORTA Bit 4
+// D5 - PORTA Bit 5
+// D6 - PORTA Bit 6
+// D7 - PORTA Bit 7
+// Characters/line: 16
+lcd_init(16);
+strcpy(at_rmaad, "AT+RMAAD\r\n");
+
+strcpy(at_bind_A, "AT+BIND=98D3,A1,F5B548\r\n");
+strcpy(at_bind_B, "AT+BIND=98D3,21,F73B81\r\n");
+
+strcpy(at_init, "AT+INIT\r\n");
+strcpy(at_inq, "AT+INQ\r\n");
+
+strcpy(at_link_A, "AT+LINK=98D3,A1,F5B548\r\n");
+strcpy(at_link_B, "AT+LINK=98D3,21,F73B81\r\n");
+
+strcpy(dicson, "AT+DISC\r\n");
+
+PORTB.5=1; 
+
+while (1)
+      {
+      // Place your code here 
+       
+            //Receiving from Bluetooth transmitter A
+            //coordinate of the loadcell: x=10m, y=5m, z=4m
+            
+            pair_with_bluetooth_A(); 
+      
+            while(PINB.7==0)
+            {
+//                lcd_clear();
+//                lcd_gotoxy(0,0);
+//                lcd_puts("No B.tooth Con. A");
+//                delay_ms(3);
+            } 
+            delay_ms(2000);
+            
+            usart_transmit('U');  
+            while(b==0 && clk<50)
+            {
+                //recData[0]='\0'; 
+                i=0;
+                usart_transmit('U');
+                delay_ms(100);
+                clk++;
+            }
+            strcpy(loadA, recData);
+            clk=0;
+            //if (b==1)
+            //{   
+                //recData[0]='\0';
+                b=0;
+                i=0;
+                //delay_ms(300);
+                
+            //} 
+//            delay_ms(500);
+//            usart_transmit('U');   
+//            while(b==0);
+//            if (b==1)
+//            {   
+//                strcpy(loadA, recData);
+//                b=0;
+//                i=0;
+//            }
+            
+            //Receiving from Bluetooth transmitter B 
+            //coordinate of the loadcell: x=-8m, y=3m, z=-1m               
+            
+            pair_with_bluetooth_B(); 
+            
+            while(PINB.7==0)
+            {
+//                lcd_clear();
+//                lcd_gotoxy(0,0);
+//                lcd_puts("No B.tooth Con. B");
+//                delay_ms(3);
+            }
+            delay_ms(2000);
+            
+            usart_transmit('V');  
+            while(b==0 && clk<50)
+            {
+                //recData[0]='\0';
+                i=0;  
+                usart_transmit('V');
+                delay_ms(100);
+                clk++;
+            }
+            strcpy(loadB, recData);
+            //
+            clk=0;
+            //if (b==1)
+            //{   
+                //recData[0]='\0';
+                b=0;
+                i=0;
+            //    delay_ms(300);    
+            //} 
+//            delay_ms(500);
+//            usart_transmit('V');   
+//            while(b==0);
+//            if (b==1)
+//            {   
+//                strcpy(loadB, recData);
+//                b=0;
+//                i=0;
+//            }
+            
+            A=atof(loadA);
+            B=atof(loadB);
+              
+            if(A<100)
+            {
+                A=0;
+            }
+            if(B<100)
+            {
+                B=0;
+            }
+            
+            A/=1000;
+            B/=1000;
+              
+//            x=(10*(long)A-8*(long)B)/((long)A+(long)B);
+//            y=(5*(long)A+3*(long)B)/((long)A+(long)B);
+//            z=(2*(long)A-(long)B)/((long)A+(long)B);
+
+            x=(10*A-8*B)/(A+B);
+            y=(5*A+3*B)/(A+B);
+            z=(4*A-B)/(A+B);  
+            if(A==0 && B==0)
+            {
+                x=0;
+                y=0;
+                z=0;
+            }
+            
+            
+            Tot=A+B; 
+            if(Tot>5.0)
+            {
+                strcpy(disp1, "OverLD,Kg ");
+                ftoa(Tot,2, totalLoad);
+                strcat(disp1, totalLoad); 
+            }
+            else
+            {
+                strcpy(disp1, "SafeLD,Kg ");
+                ftoa(Tot,2, totalLoad);
+                strcat(disp1, totalLoad); 
+            }
+            //Metacenter z-coordinate 3m
+            
+//            strcpy(disp1, "x=");
+//            ftoa(x,2, coordX);
+//            strcat(disp1, coordX);
+//            
+//            strcat(disp1, "  y=");
+//            ftoa(y,2, coordY);
+//            strcat(disp1, coordY); 
+            
+            if(z>3.0)
+            {
+                strcpy(disp2, "Instable,z=");
+                ftoa(z,3, coordZ);
+                strcat(disp2, coordZ);
+            }
+            else if(z==3.0)
+            {
+                strcpy(disp2, "Neutral,z=");
+                ftoa(z,3, coordZ);
+                strcat(disp2, coordZ);
+            }
+            else
+            {
+                strcpy(disp2, "Stable,z=");
+                ftoa(z,3, coordZ);
+                strcat(disp2, coordZ);
+            }
+                       
+            lcd_clear();
+            lcd_gotoxy(0, 0);
+            lcd_puts(disp1);  
+            lcd_gotoxy(0, 1);
+            lcd_puts(disp2);
+            //delay_ms(3000);
+      }
+}

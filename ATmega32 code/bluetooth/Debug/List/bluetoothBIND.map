@@ -1,0 +1,45 @@
+RAM Allocation [bytes]
+Variable                                                                          Address   Size
+------------------------------------------------------------------------------------------------
+at                                                                                0x031E       6
+at_rmaad                                                                          0x0324      12
+at_bind_A                                                                         0x0330      26
+at_bind_B                                                                         0x034A      26
+at_init                                                                           0x0364      11
+at_inq                                                                            0x036F      10
+at_link_A                                                                         0x0379      26
+at_link_B                                                                         0x0393      26
+dicson                                                                            0x03AD       7
+at_state                                                                          0x03B4      12
+recData                                                                           0x03C0      32
+_base_y                                                                           0x03E0       4
+_seed                                                                             0x03E4       4
+
+EEPROM Allocation [bytes]
+Variable                                                                          Address   Size
+------------------------------------------------------------------------------------------------
+
+Register Allocation
+Variable                                                                          Register  Size
+------------------------------------------------------------------------------------------------
+i                                                                                 R5           1
+_lcd_x                                                                            R4           1
+_lcd_y                                                                            R7           1
+_lcd_maxx                                                                         R6           1
+
+FLASH Allocation [words]
+Function                                                                          Address   Size
+------------------------------------------------------------------------------------------------
+usart_transmit                                                                    0x000F5      7
+myInterrupt                                                                       0x000FC     43
+main                                                                              0x00127    187
+_lcd_write_nibble_G100                                                            0x001E2     20
+_lcd_write_data                                                                   0x001F6     13
+lcd_gotoxy                                                                        0x00203     13
+lcd_clear                                                                         0x00210     14
+lcd_putchar                                                                       0x0021E     21
+lcd_puts                                                                          0x00233     17
+lcd_init                                                                          0x00244     46
+strcpy                                                                            0x00272     13
+strlen                                                                            0x0027F     12
+getchar                                                                           0x0028B      4

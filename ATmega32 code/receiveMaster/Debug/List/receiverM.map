@@ -1,0 +1,53 @@
+RAM Allocation [bytes]
+Variable                                                                          Address   Size
+------------------------------------------------------------------------------------------------
+at_rmaad                                                                          0x0323       8
+at_bind_A                                                                         0x032B      26
+at_bind_B                                                                         0x0345      26
+at_init                                                                           0x035F      11
+at_inq                                                                            0x036A      10
+at_link_A                                                                         0x0374      26
+at_link_B                                                                         0x038E      26
+dicson                                                                            0x03A8       7
+recData                                                                           0x03AF       5
+_base_y                                                                           0x03B4       4
+_seed                                                                             0x03B8       4
+
+EEPROM Allocation [bytes]
+Variable                                                                          Address   Size
+------------------------------------------------------------------------------------------------
+
+Register Allocation
+Variable                                                                          Register  Size
+------------------------------------------------------------------------------------------------
+i                                                                                 R5           1
+b                                                                                 R4           1
+_lcd_x                                                                            R7           1
+_lcd_y                                                                            R6           1
+_lcd_maxx                                                                         R9           1
+
+FLASH Allocation [words]
+Function                                                                          Address   Size
+------------------------------------------------------------------------------------------------
+usart_transmit                                                                    0x00107      7
+myInterrupt                                                                       0x0010E     52
+pair_with_bluetooth_B                                                             0x0015F     42
+main                                                                              0x00189    462
+_lcd_write_nibble_G100                                                            0x00357     20
+_lcd_write_data                                                                   0x0036B     13
+lcd_gotoxy                                                                        0x00378     13
+lcd_clear                                                                         0x00385     12
+lcd_putchar                                                                       0x00391     21
+lcd_puts                                                                          0x003A6     17
+lcd_init                                                                          0x003B7     46
+strcat                                                                            0x003E5     17
+strcpy                                                                            0x003F6     13
+strcpyf                                                                           0x00403     13
+strlen                                                                            0x00410     12
+ftoa                                                                              0x0041C    203
+atof                                                                              0x004E7    256
+getchar                                                                           0x005E7      4
+isdigit                                                                           0x005EB      9
+isspace                                                                           0x005F4     11
+ftrunc                                                                            0x005FF     49
+floor                                                                             0x00630     23
